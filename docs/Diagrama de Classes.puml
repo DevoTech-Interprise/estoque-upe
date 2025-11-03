@@ -1,0 +1,159 @@
+@startuml Diagrama de Classes
+skinparam linetype ortho
+hide empty members
+left to right direction
+
+' ----- Pacote Model -----
+package model {
+    abstract class Entidade {
+        # int id
+        + int getId()
+        + void setId(int id)
+    }
+
+    class Usuario extends Entidade {
+        - String nome
+        - String senha
+        - TIPO_USUARIO tipo
+        + TIPO_USUARIO getTipo()
+    }
+    
+    class Produto {
+        - int id
+        - String nome
+        - String categoria
+        - int quantidade
+        - float preco
+        + int getId()
+        + String getNome()
+    }
+
+    class Movimentacao extends Entidade {
+        - TIPO_MOVIMENTACAO tipo
+        - int quantidade
+        - LocalDateTime data
+        - Produto produto
+        - int idProduto
+        + Produto getProduto()
+        + TIPO_MOVIMENTACAO getTipo()
+        + int getQuantidade()
+    }
+
+    enum TIPO_USUARIO {
+        FUNCIONARIO
+        ADMINISTRADOR
+    }
+
+    enum TIPO_MOVIMENTACAO {
+        ENTRADA
+        SAIDA
+    }
+}
+
+' ----- Pacote Repository -----
+package repository {
+    interface Repository<T> {
+        + void inicializadorArquivo()
+        + ArrayList<T> ler()
+    }
+
+    class UsuarioRepository implements Repository<Usuario> {
+        - {static} Gson GSON
+        + boolean registrar(Usuario usuario)
+        + ArrayList<Usuario> ler()
+        + void atualizar(Usuario usuarioNovo)
+        + void excluir(int idUsuarioExcluir)
+        - void salvarLista(ArrayList<Usuario> usuarios)
+    }
+
+    class ProdutoRepository implements Repository<Produto> {
+        - {static} Gson GSON
+        + boolean registrar(Produto produto)
+        + ArrayList<Produto> ler()
+        + void atualizar(Produto produtoNovo)
+        + void excluir(Produto produtoExcluir)
+        - void salvarLista(ArrayList<Produto> produtos)
+    }
+
+    class MovimentacaoRepository implements Repository<Movimentacao> {
+        - {static} Gson GSON
+        + boolean registrar(Movimentacao movimentacao)
+        + ArrayList<Movimentacao> ler()
+        + void atualizarProdutoEstoque(Movimentacao movimentacao)
+        - void salvarLista(ArrayList<Movimentacao> movimentacoes)
+    }
+}
+
+' ----- Pacote Controller e View -----
+package controler {
+    class EstoqueController {
+        - EstoqueView view
+        - ProdutoRepository repositoryProduto
+        - UsuarioRepository repositoryUsuario
+        - MovimentacaoRepository repositoryMovimentacao
+        + void iniciar()
+        + void menuAdministradorController(int opcao)
+        + void menuFuncionarioController(int opcao)
+        + void cadastrarProduto()
+        + void atualizarProduto()
+        + void excluirProduto()
+        + void cadastrarUsuario()
+        + void atualizarUsuario()
+        + void excluirUsuario()
+    }
+}
+
+package view {
+    class EstoqueView {
+        - Scanner scanner
+        + String[] exibirTelaLogin()
+        + int exibirMenuAdministrador(String nome)
+        + int exibirMenuFuncionario(String nome)
+        + Produto exibirTelaCadastroProduto()
+        + Usuario exibirCadastrarUsuario()
+        + Movimentacao exibirTelaRegistrarEntrada()
+        + Movimentacao exibirTelaRegistrarSaida()
+        + void exibirRelatorios(...)
+        + void fecharScanner()
+    }
+}
+
+' ----- Pacote Util -----
+package util {
+    class LocalDateTimeAdapter extends TypeAdapter<LocalDateTime> {
+        - {static} DateTimeFormatter formatter
+        + void write(JsonWriter out, LocalDateTime value)
+        + LocalDateTime read(JsonReader in)
+    }
+}
+
+' ----- Classe Principal -----
+class Aplication {
+    + {static} void main(String[] args)
+}
+
+' ----- Relacionamentos -----
+
+' Aplicação
+Aplication ..> EstoqueController : <<cria>> e <<usa>>
+
+' Controller -> View/Repositories
+EstoqueController o--> "1" EstoqueView : <<cria>>
+EstoqueController o--> "1" UsuarioRepository : <<cria>>
+EstoqueController o--> "1" ProdutoRepository : <<cria>>
+EstoqueController o--> "1" MovimentacaoRepository : <<cria>>
+
+' Repositories -> Model
+UsuarioRepository ..> Usuario
+ProdutoRepository ..> Produto
+MovimentacaoRepository ..> Movimentacao
+MovimentacaoRepository ..> ProdutoRepository : <<usa>> (para atualizar estoque)
+
+' Repositories -> Utils
+MovimentacaoRepository ..> LocalDateTimeAdapter : <<usa>> (para GSON)
+
+' Model -> Model
+Movimentacao --> "1" Produto
+Usuario ..> TIPO_USUARIO
+Movimentacao ..> TIPO_MOVIMENTACAO
+@enduml

@@ -1,0 +1,48 @@
+@startuml Casos de Uso
+' Atores
+actor Administrador as adm
+actor Funcionario as func
+
+left to right direction
+
+rectangle "Sistema de Controle de Estoque" {
+    
+    ' Casos de Uso do Administrador
+    usecase "Gerenciar Produtos" as UC_PROD
+    usecase "Gerenciar Usuários" as UC_USER
+    usecase "Gerar Relatórios" as UC_REL
+    
+    ' Casos de Uso do Funcionário
+    usecase "Consultar Produto" as UC_CONS
+    usecase "Registrar Entrada de Estoque" as UC_ENT
+    usecase "Registrar Saída de Estoque" as UC_SAI
+    
+    ' Ações de CRUD (incluídas por Gerenciar)
+    usecase "Cadastrar Produto" as UC1
+    usecase "Atualizar Produto" as UC2
+    usecase "Excluir Produto" as UC3
+    
+    usecase "Cadastrar Usuário" as UC4
+    usecase "Atualizar Usuário" as UC5
+    usecase "Excluir Usuário" as UC6
+}
+
+' Relacionamentos do Administrador
+adm --> UC_PROD
+adm --> UC_USER
+adm --> UC_REL
+
+' Generalização dos Casos de Uso de Gerenciamento
+UC_PROD <|.. UC1 : <<include>>
+UC_PROD <|.. UC2 : <<include>>
+UC_PROD <|.. UC3 : <<include>>
+
+UC_USER <|.. UC4 : <<include>>
+UC_USER <|.. UC5 : <<include>>
+UC_USER <|.. UC6 : <<include>>
+
+' Relacionamentos do Funcionário
+func --> UC_CONS
+func --> UC_ENT
+func --> UC_SAI
+@enduml
